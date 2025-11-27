@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Atlas Calculator — Global</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b0f12" />
+  <style>
+    /* Global theme — world-class minimal dark UI */
+    :root {
+      --bg: #0b0f12; --panel: #12171d; --accent: #34d399; --accent2: #60a5fa;
+      --text: #e5e7eb; --muted: #93a3b5; --border: #1f2937;
+      --radius: 14px; --radius-sm: 10px; --shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+    * { box-sizing: border-box }
+    html,body { height: 100%; background: var(--bg); color: var(--text); font: 14px/1.65 Inter,system-ui,Segoe UI,Roboto,Arial; margin: 0 }
+    a { color: var(--accent2); text-decoration: none }
+    .wrap { max-width: 1120px; margin: 40px auto; padding: 0 20px }
+    .brand { display:flex; align-items:center; gap:12px; margin-bottom: 18px }
+    .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#34d399,#60a5fa); box-shadow: var(--shadow) }
+    .title { font-weight: 700; letter-spacing: .3px }
+    .sub { color: var(--muted); font-size: 12px }
+    .lang { margin-left:auto }
+    select { background:#0d1318; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px }
+    .grid { display:grid; grid-template-columns: 1.1fr .9fr; gap:20px }
+    @media (max-width:960px){ .grid { grid-template-columns:1fr } }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow) }
+    .panel h3 { margin:0; padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; color: var(--muted) }
+    .main { padding: 16px }
+    .row { display:flex; gap:10px; align-items:center; margin-bottom: 12px }
+    .input { flex:1; background:#0d1318; border:1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); padding: 12px 14px; outline: none }
+    .btn { background:#0d1318; border:1px solid var(--border); color:var(--text); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer }
+    .btn.primary { background: linear-gradient(135deg,#34d399,#0ea5e9); border: none; color: #041013; font-weight: 700 }
+    .btn.ghost { background: #0d1318 }
+    .display { background:#0d1318; border:1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; min-height: 44px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace }
+    .meta { display:flex; justify-content: space-between; align-items:center; color: var(--muted); font-size: 12px; margin-top: 6px }
+    .kbd { display:grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin-top: 10px }
+    .kbd .key { padding: 12px; border-radius: 10px; background: #0d1318; border: 1px solid var(--border); text-align: center; cursor: pointer; user-select: none }
+    .kbd .key.op { color: var(--accent) }
+    .kbd .key.fn { color: var(--accent2) }
+    .tabs { display:flex; gap:8px; padding: 8px; border-bottom: 1px solid var(--border) }
+    .tab { padding: 8px 12px; border-radius: 10px; cursor:pointer; color: var(--muted) }
+    .tab.active { background: #0d1318; color: var(--text); border: 1px solid var(--border) }
+    .sec { padding: 12px }
+    .form { display:grid; grid-template-columns: 1fr 1fr; gap: 10px }
+    .form label { font-size: 12px; color: var(--muted) }
+    .form input, .form select { width: 100%; margin-top: 6px }
+    .note { font-size: 12px; color: var(--muted); margin-top: 6px }
+    .list { max-height: 180px; overflow: auto; padding-right: 4px }
+    .item { display:flex; justify-content: space-between; padding: 8px 10px; border-bottom: 1px dashed var(--border); font-family: ui-monospace, Consolas, monospace; font-size: 12px }
+    .canvas { width: 100%; height: 260px; background: #0d1318; border: 1px solid var(--border); border-radius: var(--radius-sm) }
+    .badge { font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted) }
+    .ok { color: #22c55e } .error { color: #ef4444 } .warn { color: #f59e0b }
+    .footer { margin-top: 22px; color: var(--muted); font-size: 12px; display:flex; gap: 12px; align-items:center }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <div class="title" id="title">Atlas Calculator</div>
+        <div class="sub" id="subtitle">Advanced, modular, global-grade — single file internal</div>
+      </div>
+      <div class="lang">
+        <select id="langSel">
+          <option value="en">English</option>
+          <option value="fa">فارسی</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Engineering calculator -->
+      <div class="panel">
+        <h3 id="calcTitle">Engineering calculator</h3>
+        <div class="main">
+          <div class="row">
+            <input id="expr" class="input" placeholder="e.g. sin(pi/4)+sqrt(9)^2-3%2" />
+            <button id="evalBtn" class="btn primary">= Evaluate</button>
+            <button id="clrBtn" class="btn ghost">Clear</button>
+          </div>
+          <div id="result" class="display"></div>
+          <div class="meta">
+            <div><span class="badge">secure parse</span> <span class="badge">no eval</span> <span class="badge">offline ready</span></div>
+            <div id="status" class="ok">Ready</div>
+          </div>
+          <div class="kbd" id="kbd"></div>
+          <div class="row" style="margin-top:14px">
+            <div style="flex:1">
+              <div class="note" id="examplesNote">Examples: sin(pi/4), log(100), sqrt(16), 2^10, (3+5)*2, ln(e)</div>
+            </div>
+            <button id="saveBtn" class="btn">Save to history</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Tools -->
+      <div class="panel">
+        <h3 id="toolsTitle">Tools</h3>
+        <div class="tabs">
+          <div class="tab active" data-tab="finance">Finance</div>
+          <div class="tab" data-tab="convert">Convert</div>
+          <div class="tab" data-tab="graph">Graph</div>
+          <div class="tab" data-tab="history">History</div>
+        </div>
+        <div id="tab-content" class="sec"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Atlas Calculator v1</span>
+      <span>•</span>
+      <span>Built for internal use — single file</span>
+      <span>•</span>
+      <span><a href="#" id="installPWA">Install</a></span>
+    </div>
+  </div>
+  <script>
+    /* ===== i18n dictionary (English + Persian) ===== */
+    const dict = {
+      en: {
+        title: "Atlas Calculator",
+        subtitle: "Advanced, modular, global-grade — single file internal",
+        calcTitle: "Engineering calculator",
+        toolsTitle: "Tools",
+        eval: "= Evaluate",
+        clear: "Clear",
+        save: "Save to history",
+        ready: "Ready",
+        parseError: "Parse error",
+        examples: "Examples: sin(pi/4), log(100), sqrt(16), 2^10, (3+5)*2, ln(e)",
+        finance: "Finance",
+        convert: "Convert",
+        graph: "Graph",
+        history: "History",
+        compoundBtn: "Compound amount",
+        emiBtn: "Monthly EMI",
+        convertBtn: "Convert",
+        plotBtn: "Plot",
+        tempLabel: "Temperature",
+        lenLabel: "Length",
+        tipFinance: "Tip: r annual vs monthly — convert accordingly.",
+        noHist: "No history yet. Evaluate and Save.",
+        clearHist: "Clear history"
+      },
+      fa: {
+        title: "ماشین‌حساب اطلس",
+        subtitle: "پیشرفته، ماژولار، جهانی — فایل واحد داخلی",
+        calcTitle: "ماشین‌حساب مهندسی",
+        toolsTitle: "ابزارها",
+        eval: " محاسبه",
+        clear: "پاک کردن",
+        save: "ذخیره در تاریخچه",
+        ready: "آماده",
+        parseError: "خطای تجزیه",
+        examples: "مثال‌ها: sin(pi/4)، log(100)، sqrt(16)، 2^10، (3+5)*2، ln(e)",
+        finance: "مالی",
+        convert: "تبدیل",
+        graph: "نمودار",
+        history: "تاریخچه",
+        compoundBtn: "محاسبه سود مرکب",
+        emiBtn: "قسط ماهانه",
+        convertBtn: "تبدیل",
+        plotBtn: "رسم نمودار",
+        tempLabel: "دما",
+        lenLabel: "طول",
+        tipFinance: "نکته: نرخ سالانه و ماهانه را درست تبدیل کنید.",
+        noHist: "هنوز تاریخچه‌ای نیست. محاسبه کن و ذخیره کن.",
+        clearHist: "پاک کردن تاریخچه"
+      }
+    };
+    let lang = localStorage.getItem('atlas_lang') || 'en';
+    const langSel = document.getElementById('langSel');
+    langSel.value = lang;
+    function t(k){ return (dict[lang] && dict[lang][k]) || k; }
+    function applyLang() {
+      document.getElementById('title').textContent = t('title');
+      document.getElementById('subtitle').textContent = t('subtitle');
+      document.getElementById('calcTitle').textContent = t('calcTitle');
+      document.getElementById('toolsTitle').textContent = t('toolsTitle');
+      document.getElementById('evalBtn').textContent = t('eval');
+      document.getElementById('clrBtn').textContent = t('clear');
+      document.getElementById('saveBtn').textContent = t('save');
+      document.getElementById('examplesNote').textContent = t('examples');
+      document.getElementById('status').textContent = t('ready');
+      document.querySelectorAll('.tab').forEach(tab => { tab.textContent = t(tab.dataset.tab); });
+    }
+    langSel.onchange = () => { lang = langSel.value; localStorage.setItem('atlas_lang', lang); applyLang(); renderTab(activeTab); };
+    applyLang();
+
+    /* ===== Secure expression engine (Tokenizer + RPN Parser + Evaluator) ===== */
+    const TT = { number: 'number', ident: 'ident', op: 'op', paren: 'paren', comma: 'comma' };
+    function tokenize(input) {
+      const tokens = [];
+      const s = input.replace(/\s+/g, '');
+      let i = 0;
+      while (i < s.length) {
+        const c = s[i];
+        if (/[0-9.]/.test(c)) {
+          let j = i + 1;
+          while (j < s.length && /[0-9.]/.test(s[j])) j++;
+          tokens.push({ type: TT.number, value: parseFloat(s.slice(i, j)) });
+          i = j;
+        } else if (/[a-zA-Z_]/.test(c)) {
+          let j = i + 1;
+          while (j < s.length && /[a-zA-Z0-9_]/.test(s[j])) j++;
+          tokens.push({ type: TT.ident, name: s.slice(i, j) });
+          i = j;
+        } else if ('+-*/^%'.includes(c)) {
+          tokens.push({ type: TT.op, op: c }); i++;
+        } else if (c === '(' || c === ')') {
+          tokens.push({ type: TT.paren, value: c }); i++;
+        } else if (c === ',') {
+          tokens.push({ type: TT.comma }); i++;
+        } else {
+          throw new Error('Invalid char: ' + c);
+        }
+      }
+      return tokens;
+    }
+    const precedence = { '+': 1, '-': 1, '*': 2, '/': 2, '%': 2, '^': 3 };
+    const rightAssoc = new Set(['^']);
+    function toRPN(tokens) {
+      const out = [], stack = [];
+      for (const t of tokens) {
+        if (t.type === TT.number || t.type === TT.ident) out.push(t);
+        else if (t.type === TT.op) {
+          while (
+            stack.length &&
+            stack[stack.length-1].type === TT.op &&
+            ((precedence[stack[stack.length-1].op] > precedence[t.op]) ||
+             (precedence[stack[stack.length-1].op] === precedence[t.op] && !rightAssoc.has(t.op)))
+          ) out.push(stack.pop());
+          stack.push(t);
+        } else if (t.type === TT.paren && t.value === '(') stack.push(t);
+        else if (t.type === TT.paren && t.value === ')') {
+          while (stack.length && !(stack[stack.length-1].type === TT.paren && stack[stack.length-1].value === '(')) out.push(stack.pop());
+          stack.pop();
+        } else if (t.type === TT.comma) {
+          while (stack.length && !(stack[stack.length-1].type === TT.paren && stack[stack.length-1].value === '(')) out.push(stack.pop());
+        }
+      }
+      while (stack.length) out.push(stack.pop());
+      return out;
+    }
+    const consts = { pi: Math.PI, e: Math.E };
+    const real = {
+      sin: Math.sin, cos: Math.cos, tan: Math.tan,
+      asin: Math.asin, acos: Math.acos, atan: Math.atan,
+      log: (x) => Math.log10(x), ln: (x) => Math.log(x),
+      sqrt: Math.sqrt, pow: Math.pow, abs: Math.abs, min: Math.min, max: Math.max
+    };
+    const funcs = {
+      sin: ([x]) => real.sin(x), cos: ([x]) => real.cos(x), tan: ([x]) => real.tan(x),
+      asin: ([x]) => real.asin(x), acos: ([x]) => real.acos(x), atan: ([x]) => real.atan(x),
+      sqrt: ([x]) => real.sqrt(x), log: ([x]) => real.log(x), ln: ([x]) => real.ln(x),
+      abs: ([x]) => real.abs(x), min: ([a,b]) => real.min(a,b), max: ([a,b]) => real.max(a,b)
+    };
+    // Evaluate RPN — supports 1-arg funcs; min/max 2-arg (with comma handling simplified by shunting-yard)
+    function evalRPN(rpn) {
+      const st = [];
+      for (const t of rpn) {
+        if (t.type === TT.number) st.push(t.value);
+        else if (t.type === TT.ident) {
+          if (t.name in consts) { st.push(consts[t.name]); continue; }
+          const f = funcs[t.name];
+          if (!f) throw new Error('Unknown identifier: ' + t.name);
+          // default: 1-arg; special-case min/max if 2 args present
+          if (t.name === 'min' || t.name === 'max') {
+            const b = st.pop(), a = st.pop(); st.push(f([a, b]));
+          } else {
+            const arg = st.pop(); st.push(f([arg]));
+          }
+        } else if (t.type === TT.op) {
+          const b = st.pop(), a = st.pop();
+          switch (t.op) {
+            case '+': st.push(a + b); break;
+            case '-': st.push(a - b); break;
+            case '*': st.push(a * b); break;
+            case '/': st.push(a / b); break;
+            case '%': st.push(a % b); break;
+            case '^': st.push(Math.pow(a, b)); break;
+            default: throw new Error('Unknown op: ' + t.op);
+          }
+        }
+      }
+      if (st.length !== 1) throw new Error('Invalid expression');
+      return st[0];
+    }
+
+    /* ===== Finance & Convert modules ===== */
+    const Finance = {
+      compoundAmount(P, r, n, t) { return P * Math.pow(1 + r / n, n * t); },
+      loanEMI(P, rMonthly, n) { const pow = Math.pow(1 + rMonthly, n); return (P * rMonthly * pow) / (pow - 1); }
+    };
+    const Convert = {
+      temperature: {
+        CtoF: (c) => (c * 9) / 5 + 32,
+        FtoC: (f) => ((f - 32) * 5) / 9,
+        CtoK: (c) => c + 273.15,
+        KtoC: (k) => k - 273.15
+      },
+      length: {
+        mToFt: (m) => m * 3.28084,
+        ftToM: (ft) => ft / 3.28084,
+        kmToMi: (km) => km * 0.621371,
+        miToKm: (mi) => mi / 0.621371
+      }
+    };
+
+    /* ===== History ===== */
+    const History = {
+      items: [],
+      add(expr, result) {
+        const row = { expr, result, ts: new Date().toISOString() };
+        History.items.unshift(row);
+        try { localStorage.setItem('atlas_history', JSON.stringify(History.items.slice(0, 120))); } catch {}
+      },
+      load() {
+        try { const x = JSON.parse(localStorage.getItem('atlas_history') || '[]'); History.items = x; } catch { History.items = []; }
+      },
+      clear() { History.items = []; try { localStorage.removeItem('atlas_history'); } catch {} }
+    };
+    History.load();
+
+    /* ===== Keyboard and calculator UI wiring ===== */
+    const exprInput = document.getElementById('expr');
+    const resultBox = document.getElementById('result');
+    const statusBox = document.getElementById('status');
+    const evalBtn = document.getElementById('evalBtn');
+    const clrBtn = document.getElementById('clrBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    const keys = [
+      '7','8','9','/','^','sqrt(','4','5','6','*','%','abs(',
+      '1','2','3','-','(',')',
+      '0','.','+','pi','e','ln(',
+      'sin(','cos(','tan(','log(','min(','max('
+    ];
+    const kbd = document.getElementById('kbd');
+    keys.forEach(k => {
+      const el = document.createElement('div');
+      el.className = 'key ' + (/[+\-*/^%]/.test(k) ? 'op' : /\w+\(/.test(k) ? 'fn' : '');
+      el.textContent = k;
+      el.onclick = () => {
+        const start = exprInput.selectionStart ?? exprInput.value.length;
+        const end = exprInput.selectionEnd ?? exprInput.value.length;
+        const before = exprInput.value.slice(0,start);
+        const after = exprInput.value.slice(end);
+        exprInput.value = before + k + after;
+        exprInput.focus();
+        exprInput.selectionStart = exprInput.selectionEnd = start + k.length;
+      };
+      kbd.appendChild(el);
+    });
+
+    evalBtn.onclick = () => {
+      const v = exprInput.value.trim();
+      if (!v) return;
+      try {
+        const r = evalRPN(toRPN(tokenize(v)));
+        resultBox.textContent = String(r);
+        statusBox.textContent = t('ready');
+        statusBox.className = 'ok';
+      } catch (e) {
+        resultBox.textContent = 'Error: ' + (e && e.message || e);
+        statusBox.textContent = t('parseError');
+        statusBox.className = 'error';
+      }
+    };
+    clrBtn.onclick = () => { exprInput.value = ''; resultBox.textContent = ''; statusBox.textContent = t('ready'); statusBox.className = 'ok'; };
+    saveBtn.onclick = () => {
+      const v = exprInput.value.trim(); if (!v) return;
+      const res = resultBox.textContent || '';
+      History.add(v, res);
+      if (activeTab === 'history') renderTab('history');
+    };
+
+    /* ===== Tabs framework ===== */
+    const tabsEl = document.querySelectorAll('.tab');
+    const content = document.getElementById('tab-content');
+    let activeTab = 'finance';
+    tabsEl.forEach(t => t.onclick = () => {
+      tabsEl.forEach(x => x.classList.remove('active'));
+      t.classList.add('active'); activeTab = t.dataset.tab; renderTab(activeTab);
+    });
+    /* ===== Graph (2D function plot) ===== */
+    function plot(canvas, expr, range = { xmin: -10, xmax: 10, ymin: -5, ymax: 5 }) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = w * window.devicePixelRatio; canvas.height = h * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      ctx.fillStyle = '#0d1318'; ctx.fillRect(0,0,w,h);
+      // grid
+      ctx.strokeStyle = '#16202a'; ctx.lineWidth = 1;
+      for (let i=0;i<=10;i++){ const x = (i/10)*w, y = (i/10)*h; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+      // axes
+      const x0 = mapX(0, range, w), y0 = mapY(0, range, h);
+      ctx.strokeStyle = '#234'; ctx.beginPath(); ctx.moveTo(0,y0); ctx.lineTo(w,y0); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0,h); ctx.stroke();
+      // plot
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2; ctx.beginPath(); let started = false;
+      for (let px=0; px<w; px++) {
+        const x = unmapX(px, range, w);
+        const val = safeEvalWithX(expr, x);
+        if (Number.isFinite(val)) {
+          const py = mapY(val, range, h);
+          if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+        } else { started = false; }
+      }
+      ctx.stroke();
+
+      function mapX(x, r, W){ return (x - r.xmin) * (W / (r.xmax - r.xmin)); }
+      function unmapX(px, r, W){ return r.xmin + px * ((r.xmax - r.xmin) / W); }
+      function mapY(y, r, H){ return (r.ymax - y) * (H / (r.ymax - r.ymin)); }
+    }
+    function safeEvalWithX(expr, x) {
+      try {
+        const replaced = expr.replaceAll(/\bx\b/g, '('+x+')');
+        return evalRPN(toRPN(tokenize(replaced)));
+      } catch { return NaN; }
+    }
+
+    /* ===== Tab renderers ===== */
+    function renderTab(tab) {
+      if (tab === 'finance') {
+        content.innerHTML = `
+          <div class="form">
+            <div><label>Principal (P)<input id="P" class="input" type="number" value="10000"></label></div>
+            <div><label>Rate (r, annual)<input id="r" class="input" type="number" step="0.01" value="0.12"></label></div>
+            <div><label>Compounds per year (n)<input id="n" class="input" type="number" value="12"></label></div>
+            <div><label>Years (t)<input id="t" class="input" type="number" value="2"></label></div>
+          </div>
+          <div class="row">
+            <button id="calcCompound" class="btn primary">${t('compoundBtn')}</button>
+            <span id="compoundOut" class="display" style="flex:1"></span>
+          </div>
+          <div class="form" style="margin-top:10px">
+            <div><label>Loan principal (P)<input id="LP" class="input" type="number" value="300000"></label></div>
+            <div><label>Monthly rate (r)<input id="LR" class="input" type="number" step="0.001" value="0.02"></label></div>
+            <div><label>Months (n)<input id="LN" class="input" type="number" value="24"></label></div>
+          </div>
+          <div class="row">
+            <button id="calcEMI" class="btn">${t('emiBtn')}</button>
+            <span id="emiOut" class="display" style="flex:1"></span>
+          </div>
+          <div class="note">${t('tipFinance')}</div>
+        `;
+        document.getElementById('calcCompound').onclick = () => {
+          const P = +document.getElementById('P').value;
+          const r = +document.getElementById('r').value;
+          const n = +document.getElementById('n').value;
+          const tYears = +document.getElementById('t').value;
+          const A = Finance.compoundAmount(P, r, n, tYears);
+          document.getElementById('compoundOut').textContent = A.toFixed(2);
+        };
+        document.getElementById('calcEMI').onclick = () => {
+          const P = +document.getElementById('LP').value;
+          const r = +document.getElementById('LR').value;
+          const n = +document.getElementById('LN').value;
+          const emi = Finance.loanEMI(P, r, n);
+          document.getElementById('emiOut').textContent = emi.toFixed(2);
+        };
+      }
+      if (tab === 'convert') {
+        content.innerHTML = `
+          <div class="form">
+            <div>
+              <label>${t('tempLabel')}<input id="tempIn" class="input" type="number" value="25"></label>
+              <select id="tempSel" class="input" style="margin-top:6px">
+                <option value="CtoF">C → F</option>
+                <option value="FtoC">F → C</option>
+                <option value="CtoK">C → K</option>
+                <option value="KtoC">K → C</option>
+              </select>
+            </div>
+            <div>
+              <label>${t('lenLabel')}<input id="lenIn" class="input" type="number" value="1"></label>
+              <select id="lenSel" class="input" style="margin-top:6px">
+                <option value="mToFt">m → ft</option>
+                <option value="ftToM">ft → m</option>
+                <option value="kmToMi">km → mi</option>
+                <option value="miToKm">mi → km</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <button id="doConvert" class="btn primary">${t('convertBtn')}</button>
+            <span id="convOut" class="display" style="flex:1"></span>
+          </div>
+        `;
+        document.getElementById('doConvert').onclick = () => {
+          const tempIn = +document.getElementById('tempIn').value;
+          const tempSel = document.getElementById('tempSel').value;
+          const lenIn = +document.getElementById('lenIn').value;
+          const lenSel = document.getElementById('lenSel').value;
+          const tVal = Convert.temperature[tempSel](tempIn);
+          const lVal = Convert.length[lenSel](lenIn);
+          document.getElementById('convOut').textContent = `Temp: ${tVal.toFixed(2)} | Len: ${lVal.toFixed(3)}`;
+        };
+      }
+      if (tab === 'graph') {
+        content.innerHTML = `
+          <div class="row">
+            <input id="gx" class="input" placeholder="f(x), e.g. sin(x)+cos(2*x)" value="sin(x)">
+            <button id="plotBtn" class="btn primary">${t('plotBtn')}</button>
+          </div>
+          <canvas id="canvas" class="canvas"></canvas>
+          <div class="note">Range: x [-10,10], y [-5,5]. Use: sin, cos, tan, ln, log, sqrt, abs, pi, e.</div>
+        `;
+        const canvas = document.getElementById('canvas');
+        document.getElementById('plotBtn').onclick = () => {
+          const expr = document.getElementById('gx').value.trim();
+          plot(canvas, expr);
+        };
+        plot(canvas, document.getElementById('gx').value.trim());
+      }
+      if (tab === 'history') {
+        const items = History.items.map(it => `
+          <div class="item"><span>${it.expr}</span><span>${it.result}</span></div>
+        `).join('');
+        content.innerHTML = `
+          <div class="list">${items || '<div class="note">'+t('noHist')+'</div>'}</div>
+          <div class="row">
+            <button id="clearHist" class="btn">${t('clearHist')}</button>
+          </div>
+        `;
+        document.getElementById('clearHist').onclick = () => { History.clear(); renderTab('history'); };
+      }
+    }
+
+    // Prefill example and initial tab
+    document.getElementById('expr').value = 'sin(pi/4)+sqrt(9)^2-3%2';
+    renderTab('finance');
+
+    /* ===== PWA (very light, internal) ===== */
+    let swReg;
+    const SW_CODE = `
+      const CACHE = 'atlas-v1';
+      const ASSETS = ['/', location.href];
+      self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(self.skipWaiting())));
+      self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+      self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+        const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res;
+      })).catch(()=>caches.match(location.href))));
+    `;
+    (async function registerSW(){
+      if ('serviceWorker' in navigator) {
+        const blob = new Blob([SW_CODE], { type: 'text/javascript' });
+        const url = URL.createObjectURL(blob);
+        try { swReg = await navigator.serviceWorker.register(url); } catch {}
+      }
+    })();
+    document.getElementById('installPWA').onclick = async (e) => { e.preventDefault(); alert('Installed as PWA for offline use (auto-cache).'); };
+  </script>
+</body>
+</html>
